@@ -7,6 +7,13 @@ public static class TaskValidation
     public const int TagMaxLength = 32;
     public const int MaxTags = 8;
 
+    private static readonly Dictionary<string, TaskPriority> AllowedPriorities = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["low"] = TaskPriority.Low,
+        ["medium"] = TaskPriority.Medium,
+        ["high"] = TaskPriority.High
+    };
+
     public static Dictionary<string, string[]> Validate(string? title, string? description, string? priority, IReadOnlyList<string>? tags)
     {
         var errors = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
@@ -25,7 +32,7 @@ public static class TaskValidation
             errors["description"] = [$"Description must be {DescriptionMaxLength} characters or fewer."];
         }
 
-        if (!string.IsNullOrWhiteSpace(priority) && !Enum.TryParse<TaskPriority>(priority, ignoreCase: true, out _))
+        if (!string.IsNullOrWhiteSpace(priority) && !IsAllowedPriority(priority))
         {
             errors["priority"] = ["Priority must be low, medium, or high."];
         }
@@ -48,6 +55,13 @@ public static class TaskValidation
 
     public static TaskPriority ParsePriorityOrDefault(string? priority)
     {
-        return Enum.TryParse<TaskPriority>(priority, ignoreCase: true, out var parsed) ? parsed : TaskPriority.Medium;
+        return !string.IsNullOrWhiteSpace(priority) && AllowedPriorities.TryGetValue(priority.Trim(), out var parsed)
+            ? parsed
+            : TaskPriority.Medium;
+    }
+
+    public static bool IsAllowedPriority(string priority)
+    {
+        return AllowedPriorities.ContainsKey(priority.Trim());
     }
 }

@@ -94,7 +94,7 @@ The frontend listens on:
 http://localhost:5173
 ```
 
-The Vite dev server proxies `/api` to `http://localhost:5085`. You can also copy `.env.example` to `.env` and set `VITE_API_BASE_URL` explicitly.
+The Vite dev server proxies `/api` to `http://localhost:5085`. You can also copy `src/TaskManagement.Web/.env.example` to `src/TaskManagement.Web/.env` and set `VITE_API_BASE_URL` explicitly.
 
 ## Run with Docker Compose
 

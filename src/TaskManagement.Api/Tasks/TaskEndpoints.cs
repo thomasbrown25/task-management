@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using TaskManagement.Api.Data;
@@ -210,7 +211,7 @@ public static class TaskEndpoints
             errors["status"] = ["Status must be all, active, completed, or overdue."];
         }
 
-        if (!string.IsNullOrWhiteSpace(priority) && !Enum.TryParse<TaskPriority>(priority, ignoreCase: true, out _))
+        if (!string.IsNullOrWhiteSpace(priority) && !TaskValidation.IsAllowedPriority(priority))
         {
             errors["priority"] = ["Priority must be low, medium, or high."];
         }
@@ -225,7 +226,7 @@ public static class TaskEndpoints
             errors["direction"] = ["Direction must be asc or desc."];
         }
 
-        if (!string.IsNullOrWhiteSpace(today) && !DateOnly.TryParse(today, out _))
+        if (!string.IsNullOrWhiteSpace(today) && !TryParseDateOnly(today, out _))
         {
             errors["today"] = ["Today must use YYYY-MM-DD date-only format."];
         }
@@ -245,7 +246,17 @@ public static class TaskEndpoints
 
     private static DateOnly ParseTodayOrDefault(string? today)
     {
-        return DateOnly.TryParse(today, out var parsed) ? parsed : DateOnly.FromDateTime(DateTime.UtcNow);
+        return TryParseDateOnly(today, out var parsed) ? parsed : DateOnly.FromDateTime(DateTime.UtcNow);
+    }
+
+    private static bool TryParseDateOnly(string? value, out DateOnly parsed)
+    {
+        return DateOnly.TryParseExact(
+            value,
+            "yyyy-MM-dd",
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.None,
+            out parsed);
     }
 
     private static IQueryable<TaskItem> ApplySort(IQueryable<TaskItem> query, string sort, string direction)

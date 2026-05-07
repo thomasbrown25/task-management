@@ -77,6 +77,28 @@ public class TaskEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
         overdueResponse.Items.Should().NotContain(task => task.Title == "Ship demo polish", because: "completed tasks should not appear as overdue");
     }
 
+    [Theory]
+    [InlineData("0")]
+    [InlineData("123")]
+    public async Task CreateTask_WithNumericPriority_ReturnsValidationProblem(string priority)
+    {
+        var response = await _client.PostAsJsonAsync("/api/tasks", new { title = "Invalid priority", priority });
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var body = await response.Content.ReadAsStringAsync();
+        body.Should().Contain("priority");
+    }
+
+    [Fact]
+    public async Task ListTasks_WithNonIsoToday_ReturnsValidationProblem()
+    {
+        var response = await _client.GetAsync("/api/tasks?status=overdue&today=05/10/2026");
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var body = await response.Content.ReadAsStringAsync();
+        body.Should().Contain("today");
+    }
+
     [Fact]
     public async Task UpdateFailure_PreservesExistingTaskAndReportsValidationError()
     {
